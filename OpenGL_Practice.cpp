@@ -1,12 +1,10 @@
 // OpenGL_Practice.cpp : Defines the entry point for the console application.
 //
 //GLAD manages function pointers for OpenGL
-#include <glad.h>
+#include "Shader.h"
+
 #include <GLFW/glfw3.h>
-
 #include <iostream>
-
-
 
 void framebuffer_size_callback(GLFWwindow *window, int width, int height);
 void processInput(GLFWwindow *window);
@@ -14,30 +12,6 @@ void processInput(GLFWwindow *window);
 //window settings
 const unsigned int SCREEN_WIDTH = 800;
 const unsigned int SCREEN_HEIGHT = 600;
-
-
-
-const char *vertexShaderSource = "#version 330 core\n"
-"layout (location = 0) in vec3 aPos;\n"
-"layout (location = 1) in vec3 aColor;\n"
-"out vec3 ourColor;\n"
-"void main()\n"
-"{\n"
-"   gl_Position = vec4(aPos, 1.0);\n"
-"   ourColor = aColor;\n"
-"}\0";
-
-const char *fragmentShaderSource = "#version 330 core\n"
-"out vec4 FragColor;\n"
-"in vec3 ourColor;\n"
-"void main()\n"
-"{\n"
-"   FragColor = vec4(ourColor, 1.0f);\n"
-"}\n\0";
-
-
-
-
 
 int main()
 {	
@@ -68,55 +42,7 @@ int main()
 		return -1;
 	}
 
-	//attach the vertext shader source code to the shader object and compile the shader
-	int vertexShader = glCreateShader(GL_VERTEX_SHADER);
-	glShaderSource(vertexShader, 1, &vertexShaderSource, nullptr);
-	glCompileShader(vertexShader);
-
-// CHECK IF VERTEX SHADER WAS COMPILED SUCCESSFULLY
-	int success;
-	char infoLog[512];
-	glGetShaderiv(vertexShader, GL_COMPILE_STATUS, &success);
-
-	if(!success)
-	{
-		glGetShaderInfoLog(vertexShader, 512, nullptr, infoLog);
-		std::cout << "ERROR::SHADER::VERTEX::COMPILATION_FAILED\n" << infoLog << std::endl;
-	}
-// END CHECK
-
-	//attach the fragment shader source code to the shader object and compile the shader
-	int fragmentShader = glCreateShader(GL_FRAGMENT_SHADER);
-	glShaderSource(fragmentShader, 1, &fragmentShaderSource, nullptr);
-	glCompileShader(fragmentShader);
-
-// CHECK IF FRAGMENT SHADER WAS COMPILED SUCCESSFULLY
-	glGetShaderiv(fragmentShader, GL_COMPILE_STATUS, &success);
-	if (!success)
-	{
-		glGetShaderInfoLog(fragmentShader, 512, nullptr, infoLog);
-		std::cout << "ERROR::SHADER::FRAGMENT::COMPILATION_FAILED\n" << infoLog << std::endl;
-	}
-// END CHECK
-
-	// create a shader program to link all our shaders together
-	int shaderProgram = glCreateProgram();
-	glAttachShader(shaderProgram, vertexShader);
-	glAttachShader(shaderProgram, fragmentShader);
-	glLinkProgram(shaderProgram);
-
-// CHECK IF SHADER LINKING WAS SUCCESSFULLY	
-	glGetProgramiv(shaderProgram, GL_LINK_STATUS, &success);
-	if (!success)
-	{		
-		glGetProgramInfoLog(shaderProgram, 512, nullptr, infoLog);
-		std::cout << "ERROR::SHADER::PROGRAM::LINKING_FAILED\n" << infoLog << std::endl;
-	}
-// END CHECK
-
-	// once these sharders are linked to the program they are not longer needed
-	glDeleteShader(vertexShader);
-	glDeleteShader(fragmentShader);
+	Shader shader("VertexShader.txt", "FragmentShader.txt");
 
 	
 
@@ -178,8 +104,8 @@ int main()
 		glClear(GL_COLOR_BUFFER_BIT);
 
 
-		//draw triagle
-		glUseProgram(shaderProgram);
+		//draw triangle
+		shader.use();
 		glBindVertexArray(VAO);
 		glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
 
@@ -199,7 +125,7 @@ int main()
 }
 
 // glfw: handle user resizing of window
-void framebuffer_size_callback(GLFWwindow* window, const int width, const int height)
+void framebuffer_size_callback(GLFWwindow *window, const int width, const int height)
 {
 	glViewport(0, 0, width, height);
 }
